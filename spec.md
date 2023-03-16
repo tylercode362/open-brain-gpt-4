@@ -6,23 +6,25 @@
 這邊有提供 api 讓你可以操作，api 跟說明如下:
 
 * 鳴笛系統
-http://10.1.1.11:3000/apis/sound?level=1&duration=10
+http://10.1.1.11:3000/apis/sound?level=1&duration=10  
 level 表示聲音的強度，介於 1 到 10，數字越小聲音越小
 duration 表示聲響的時間，單位是秒，介於 1~360
 
 * 柵欄操作系統
-http://10.1.1.12:3000/apis/fence?action=up
+http://10.1.1.12:3000/apis/fence?action=up  
 action 表示要給予柵欄的動作，包含 up 上升，down 下降，pause 停止，break 表示觸發柵欄自斷機制
 柵欄上升，表示允許物體通過，柵欄放下，表示不允許任何物體通過，柵欄自斷機制用在某些特殊狀況
 
 * 通報系統，用來通報交通管制中心
-http://10.1.1.13:3000/apis/report?description=text
+http://10.1.1.13:3000/apis/report?description=text  
 description 表示通報的內容
+
 
 你的回應必須要以 api 呼叫方式回應，不可以輸出其他的訊息。
 例如: 只能回傳
 
 http://10.1.1.12:3000/apis/fence?action=up
+
 http://10.1.1.12:3000/apis/fence?action=down
 
 
