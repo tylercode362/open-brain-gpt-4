@@ -33,7 +33,9 @@ resp = openai.ChatCompletion.create(model=MODEL,
 
 content = resp['choices'][0]['message']['content']
 
-# parse the content to only retrieve api endpoint
+# Parse the content and ensure that there are no blank entries.
+# This assumes that the returned content only contains HTTP 
+# endpoint information.
 apis = list(filter(lambda x: x!='', content.split('\n')))
 
 # well, the following api will be expected to call directly
