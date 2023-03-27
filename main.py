@@ -1,20 +1,18 @@
-import requests
 import openai
+import requests
+import re
 
-# 請將以下 API_KEY 替換為您的 OpenAI API 密鑰
-openai.api_key = "your_openai_api_key"
+def main():
+    # Replace this with your actual OpenAI API key
+    openai.api_key = "your_openai_api_key"
 
-def call_api(url, params=None):
-    response = requests.get(url, params=params)
-    if response.status_code == 200:
-        print(f"API called successfully: {response.url}")
-    else:
-        print(f"API call failed with status code: {response.status_code}")
+    # Retrieve natural language description from OpenAI
+    prompt = ("Describe the actions to take for the railway crossing safety control system, "
+              "including fence actions, sound actions, and report actions. Use the following format:\n"
+              "fence [up|down|pause|break]; sound level [1-10] duration [1-360]; report [description].")
 
-def generate_description(image_data):
-    prompt = f"描述以下影像輸入數據：\n{image_data}\n描述："
     response = openai.Completion.create(
-        engine="text-davinci-002",
+        engine="davinci-codex",
         prompt=prompt,
         max_tokens=100,
         n=1,
@@ -22,29 +20,34 @@ def generate_description(image_data):
         temperature=0.5,
     )
 
-    if response.choices:
-        return response.choices[0].text.strip()
-    return "無法生成描述"
+    # Assuming the first response is the most relevant
+    natural_language_description = response.choices[0].text.strip()
 
-def main():
-    # 資料模擬，需替換為實際影像輸入數據
-    image_data = [((100, 200), (300, 400), "car")]
+    # Process the natural language description and make API calls
+    process_description_and_call_apis(natural_language_description)
 
-    description = generate_description(image_data)
+def process_description_and_call_apis(description):
+    # Detect possible actions in the description
+    fence_action = re.search(r"fence (up|down|pause|break)", description)
+    sound_action = re.search(r"sound level (\d) duration (\d+)", description)
+    report_action = re.search(r"report (.+)", description)
 
-    # 柵欄放下
-    fence_action_down = "http://10.1.1.12:3000/apis/fence?action=down"
-    call_api(fence_action_down)
+    # Call the appropriate APIs based on the detected actions
+    if fence_action:
+        action = fence_action.group(1)
+        response = requests.get(f"http://10.1.1.12:3000/apis/fence?action={action}")
+        print(f"Fence API called with action '{action}'. Response: {response.text}")
 
-    # 鳴笛
-    sound_params = {"level": 10, "duration": 5}
-    sound_api = "http://10.1.1.11:3000/apis/sound"
-    call_api(sound_api, params=sound_params)
+    if sound_action:
+        level = sound_action.group(1)
+        duration = sound_action.group(2)
+        response = requests.get(f"http://10.1.1.11:3000/apis/sound?level={level}&duration={duration}")
+        print(f"Sound API called with level '{level}' and duration '{duration}'. Response: {response.text}")
 
-    # 通報交通管制中心
-    report_params = {"description": description}
-    report_api = "http://10.1.1.13:3000/apis/report"
-    call_api(report_api, params=report_params)
+    if report_action:
+        description = report_action.group(1)
+        response = requests.get(f"http://10.1.1.13:3000/apis/report?description={description}")
+        print(f"Report API called with description '{description}'. Response: {response.text}")
 
 if __name__ == "__main__":
     main()
