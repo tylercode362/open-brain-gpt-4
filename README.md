@@ -1,9 +1,9 @@
    
-    # Railway Crossing Safety Control System
+# Railway Crossing Safety Control System
 
     This project aims to improve the safety of railway crossings by implementing a system that controls traffic signals, barriers, and alerts. The system uses a combination of video input devices and control devices to detect and manage objects on the railway crossing. The project also includes an API to facilitate the integration of the system with other services.
 
-    ## Installation
+## Installation
 
     Follow these steps to set up the Railway Crossing Safety Control System:
 
@@ -36,7 +36,7 @@
 
     6. Replace the placeholder `your_openai_api_key` in `main.py` with your actual OpenAI API key.
 
-    ## Usage
+## Usage
 
     With the virtual environment activated, run the `main.py` script:
 
