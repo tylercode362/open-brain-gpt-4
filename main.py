@@ -1,43 +1,50 @@
-import os
+import requests
 import openai
-import pdb
 
+# 請將以下 API_KEY 替換為您的 OpenAI API 密鑰
+openai.api_key = "your_openai_api_key"
 
-MODEL='gpt-3.5-turbo'
+def call_api(url, params=None):
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        print(f"API called successfully: {response.url}")
+    else:
+        print(f"API call failed with status code: {response.status_code}")
 
-# Although the library contains the same code as below, we have
-# kept it here for easy reference.
-openai.api_key = os.getenv("OPENAI_API_KEY")
+def generate_description(image_data):
+    prompt = f"描述以下影像輸入數據：\n{image_data}\n描述："
+    response = openai.Completion.create(
+        engine="text-davinci-002",
+        prompt=prompt,
+        max_tokens=100,
+        n=1,
+        stop=None,
+        temperature=0.5,
+    )
 
-# read spec
-with open('spec.md', 'r') as f:
-    spec = f.read()
+    if response.choices:
+        return response.choices[0].text.strip()
+    return "無法生成描述"
 
-# I reckon that if we employ gpt-4, there would be no need
-# to furnish coordinates. Nevertheless, there remains a degree
-# of uncertainty. The response may include unforeseen explanations
-# that could influence the parsing of the api endpoint. It all
-# hinges on how well the model grasps your intent. I surmise that
-# this aspect should see significant enhancement in forthcoming models.
-objects = '''
-現在輸入的資料如下，請產生對應的 Api 呼叫，注意僅回傳 api 不需要補充說明
+def main():
+    # 資料模擬，需替換為實際影像輸入數據
+    image_data = [((100, 200), (300, 400), "car")]
 
-(0, 10), (1024, 120), 鐵軌
-(0, 60), (60, 190), 柵欄
-(1000, 600), (1050, 650), 車子
-'''
+    description = generate_description(image_data)
 
-resp = openai.ChatCompletion.create(model=MODEL,
-        temperature = 0, # deterministic answer
-        messages=[{"role": "user", "content": spec+objects}])
+    # 柵欄放下
+    fence_action_down = "http://10.1.1.12:3000/apis/fence?action=down"
+    call_api(fence_action_down)
 
-content = resp['choices'][0]['message']['content']
+    # 鳴笛
+    sound_params = {"level": 10, "duration": 5}
+    sound_api = "http://10.1.1.11:3000/apis/sound"
+    call_api(sound_api, params=sound_params)
 
-# Parse the content and ensure that there are no blank entries.
-# This assumes that the returned content only contains HTTP 
-# endpoint information.
-apis = list(filter(lambda x: x!='', content.split('\n')))
+    # 通報交通管制中心
+    report_params = {"description": description}
+    report_api = "http://10.1.1.13:3000/apis/report"
+    call_api(report_api, params=report_params)
 
-# well, the following api will be expected to call directly
-for api in apis:
-    print(api)
+if __name__ == "__main__":
+    main()
